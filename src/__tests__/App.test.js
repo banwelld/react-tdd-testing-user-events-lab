@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import '@testing-library/jest-dom';
 
 import App from "../App";
@@ -66,26 +66,81 @@ test("displays the correct links", () => {
 
 // Newsletter Form - Initial State
 test("the form includes text inputs for name and email address", () => {
-  // your test code here
+  render(<App />);
+
+  const nameInput = screen.getByRole("textbox", { name: /name/i });
+  const emailInput = screen.getByRole("textbox", { name: /email/i });
+
+  expect(nameInput).toBeInTheDocument();
+  expect(emailInput).toBeInTheDocument();
 });
 
 test("the form includes three checkboxes to select areas of interest", () => {
-  // your test code here
+  render(<App />);
+
+  const form = screen.getByRole("form");
+  const interestLabel = within(form).getByText(/interest/i);
+  const checkboxes = within(form).getAllByRole("checkbox");
+
+  expect(interestLabel).toBeInTheDocument();
+  expect(checkboxes.length).toBeGreaterThanOrEqual(3);
 });
 
 test("the checkboxes are initially unchecked", () => {
-  // your test code here
+  render(<App />);
+
+  const form = screen.getByRole("form");
+  const checkboxes = within(form).getAllByRole("checkbox", {checked: false});
+  const checked = within(form).getAllByRole("checkbox");
+
+  expect(checkboxes.length).toBe(checked.length);
 });
 
 // Newsletter Form - Adding Responses
 test("the page shows information the user types into the name and email address form fields", () => {
-  // your test code here
+  render(<App />);
+
+  const nameInput = screen.getByRole("textbox", { name: /name/i });
+  const emailInput = screen.getByRole("textbox", { name: /email/i });
+
+  fireEvent.change(nameInput, { target: { value: "John Doe" } });
+  fireEvent.change(emailInput, { target: { value: "johndoe@example.com" } });
+
+  expect(nameInput).toHaveValue("John Doe");
+  expect(emailInput).toHaveValue("johndoe@example.com");
 });
 
 test("checked status of checkboxes changes when user clicks them", () => {
-  // your test code here
+  render(<App />);
+
+  const form = screen.getByRole("form");
+  const checkboxes = within(form).getAllByRole("checkbox");
+
+  checkboxes.forEach(box => {
+    fireEvent.click(box);
+    expect(box).toBeChecked();
+    fireEvent.click(box);
+    expect(box).not.toBeChecked();
+  });
 });
 
 test("a message is displayed when the user clicks the Submit button", () => {
-  // your test code here
+  render(<App />);
+  expect(screen.queryByText(/success/i)).toBeFalsy();
+
+  const btn = screen.getByRole("button", { name: /submit/i });
+  const first = screen.getByRole("textbox", { name: /first/i });
+  const last = screen.getByRole("textbox", { name: /last/i });
+  const email = screen.getByRole("textbox", { name: /email/i });
+  const boxes = screen.getAllByRole("checkbox");
+
+  fireEvent.change(first, { target: { value: "John" } });
+  fireEvent.change(last, { target: { value: "Doe" } });
+  fireEvent.change(email, { target: { value: "johndoe@example.com" } });
+  boxes.forEach(box => {
+    fireEvent.click(box);
+  });
+
+  fireEvent.click(btn);
+  expect(screen.getByText(/success/i)).toBeTruthy();
 });
